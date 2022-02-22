@@ -1,10 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import sys
-import argparse
-import json
-import math
-from warnings import catch_warnings
+import dpkt
+import traceback
 from time import sleep
 
 # get TRex APIs.
@@ -102,14 +100,18 @@ class TrexDriver():
         self.txPort = txPort
         self.rxPort = rxPort
         self.pcap = pcap
-        self.rate = rate;
+        self.rate = rate
         self.duration = duration
 
     # It creates a stream by leveraging the 'pcap' file which has been set 
     # during the driver creation.
     def __buildStreamsFromPcap(self):
-            return [STLStream(packet=STLPktBuilder(pkt=self.pcap),
-                              mode=STLTXCont())]
+        reader = dpkt.pcap.Reader(open(self.pcap, "rb"))
+        streams = []
+        for ts, pkt in reader:
+            new_stream = STLStream(packet = STLPktBuilder(pkt_buffer=pkt), mode=STLTXCont())
+            streams.append(new_stream)
+        return streams
 
     def run(self):
         tOutput = TrexOutput()
@@ -174,9 +176,11 @@ class TrexDriver():
             tOutput.setRxTotalPackets(rxStats['rx_good_packets'])
 
         except STLError as e:
+            traceback.print_exc()
             print(e)
             # sys.exit(1)
         except Exception as e:
+            traceback.print_exc()
             print(e)
 
         finally:
@@ -187,6 +191,6 @@ class TrexDriver():
 # Entry point used for testing
 if __name__ == '__main__':
 
-    driver = TrexDriver('127.0.0.1', 0, 1, 'pcap/trex-pcap-files/srv6-init_request_a.pcap', '100%', 20)
+    driver = TrexDriver('127.0.0.1', 0, 1, 'pcap/trex-pcap-files/srv6-init_request_a.pcap_replicated_8.pcap', '100%', 20)
     output = driver.run()
     print(output.toString())
