@@ -9,7 +9,7 @@ from time import sleep
 
 # get TRex APIs.
 # sys.path.insert(0, "/opt/trex-core-2.41/scripts/automation/trex_control_plane/stl/")
-sys.path.insert(0, "/opt/trex-core-2.41/scripts/automation/trex_control_plane/interactive/")
+sys.path.insert(0, "/opt/trex-core-2.95/scripts/automation/trex_control_plane/interactive/")
 
 
 from trex_stl_lib.api import *
@@ -167,12 +167,17 @@ class TrexDriver():
             txStats = client.get_xstats(self.txPort)
             rxStats = client.get_xstats(self.rxPort)
 
-            tOutput.setTxTotalPackets(txStats['tx_total_packets'])
-            tOutput.setRxTotalPackets(rxStats['rx_total_packets'])
+            print(txStats)
+            print("\n\n\n\n")
+            # print(rxStats)
+            tOutput.setTxTotalPackets(txStats['tx_good_packets'])
+            tOutput.setRxTotalPackets(rxStats['rx_good_packets'])
 
         except STLError as e:
             print(e)
-            sys.exit(1)
+            # sys.exit(1)
+        except Exception as e:
+            print(e)
 
         finally:
             client.disconnect()
@@ -182,6 +187,6 @@ class TrexDriver():
 # Entry point used for testing
 if __name__ == '__main__':
 
-    driver = TrexDriver('127.0.0.1', 0, 1, 'pcap/trex-pcap-files/plain-ipv6-64.pcap', '100%', 10)
+    driver = TrexDriver('127.0.0.1', 0, 1, 'pcap/trex-pcap-files/srv6-init_request_a.pcap', '100%', 20)
     output = driver.run()
     print(output.toString())
